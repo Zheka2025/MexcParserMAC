@@ -1,0 +1,25 @@
+# Build results
+bin/
+obj/
+releases/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio cache/options
+.vs/
+
+# MAUI specific
+*.exe.WebView2/
+
+# macOS
+.DS_Store
+*.app
+
+# Session files (містять особисті дані!)
+*.session
+config.json
+

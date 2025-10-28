@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MexcSetupApp.Maui.MainPage"
+             Title="MEXC Setup and Parser">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="10">
+            
+            <!-- TELEGRAM SETTINGS -->
+            <Frame BorderColor="LightGray" Padding="15" CornerRadius="8">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Telegram / MEXC Settings" FontSize="18" FontAttributes="Bold"/>
+                    
+                    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="10">
+                        <Label Grid.Row="0" Grid.Column="0" Text="API ID:" VerticalOptions="Center"/>
+                        <Entry Grid.Row="0" Grid.Column="1" x:Name="ApiIdEntry" Keyboard="Numeric"/>
+                        
+                        <Label Grid.Row="1" Grid.Column="0" Text="API HASH:" VerticalOptions="Center"/>
+                        <Entry Grid.Row="1" Grid.Column="1" x:Name="ApiHashEntry"/>
+                        
+                        <Label Grid.Row="2" Grid.Column="0" Text="Phone:" VerticalOptions="Center"/>
+                        <Entry Grid.Row="2" Grid.Column="1" x:Name="PhoneEntry" Keyboard="Telephone"/>
+                        
+                        <Label Grid.Row="3" Grid.Column="0" Text="Listing Channel ID:" VerticalOptions="Center"/>
+                        <Entry Grid.Row="3" Grid.Column="1" x:Name="ListingChannelEntry"/>
+                        
+                        <Label Grid.Row="4" Grid.Column="0" Text="Delisting Channel ID:" VerticalOptions="Center"/>
+                        <Entry Grid.Row="4" Grid.Column="1" x:Name="DelistingChannelEntry"/>
+                        
+                        <Label Grid.Row="5" Grid.Column="0" Text="User Data Dir:" VerticalOptions="Center"/>
+                        <Entry Grid.Row="5" Grid.Column="1" x:Name="UserDataDirEntry"/>
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- BUTTONS -->
+            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                <Button x:Name="ConnectBtn" Text="Connect Telegram" WidthRequest="150" Clicked="OnConnectClicked"/>
+                <Button x:Name="MexcLoginBtn" Text="Open MEXC Login" WidthRequest="150" Clicked="OnMexcLoginClicked" IsEnabled="False"/>
+                <Button x:Name="SaveBtn" Text="Save Config" WidthRequest="150" Clicked="OnSaveClicked"/>
+                <Button x:Name="ToggleVisibilityBtn" Text="👁 Hide" WidthRequest="100" Clicked="OnToggleVisibilityClicked"/>
+            </HorizontalStackLayout>
+
+            <!-- PARSER CONTROL -->
+            <Frame BorderColor="LightGray" Padding="15" CornerRadius="8">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Parser Control" FontSize="18" FontAttributes="Bold"/>
+                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                        <Button x:Name="StartParserBtn" Text="Start Parser" WidthRequest="120" Clicked="OnStartParserClicked" IsEnabled="False"/>
+                        <Button x:Name="StopParserBtn" Text="Stop Parser" WidthRequest="120" Clicked="OnStopParserClicked" IsEnabled="False"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- LOGS -->
+            <Frame BorderColor="LightGray" Padding="15" CornerRadius="8">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Logs" FontSize="18" FontAttributes="Bold"/>
+                    <Editor x:Name="LogsEditor" 
+                            HeightRequest="200" 
+                            IsReadOnly="True" 
+                            FontFamily="Courier"
+                            FontSize="12"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- STATUS -->
+            <Label x:Name="StatusLabel" Text="Status:" TextColor="{StaticResource Primary}"/>
+            
+            <!-- FOOTER -->
+            <Label Text="Розроблено @kovtun_evgenii для ком'юніті Tether VIP"
+                   HorizontalOptions="Center"
+                   FontSize="12"
+                   TextColor="Gray"
+                   Opacity="0.7"/>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

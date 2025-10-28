@@ -1,0 +1,89 @@
+name: Build macOS Release
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Дозволяє запустити вручну з GitHub UI
+
+jobs:
+  build-macos:
+    name: Build for macOS
+    runs-on: macos-latest  # GitHub надає Mac runner безкоштовно!
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+    
+    - name: 🔧 Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: 📦 Install MAUI workload
+      run: dotnet workload install maui
+    
+    - name: 🔄 Restore dependencies
+      run: dotnet restore MexcSetupApp.Maui.csproj
+    
+    - name: 🔨 Build Release for macOS
+      run: dotnet publish MexcSetupApp.Maui.csproj -f net8.0-maccatalyst -c Release -p:CreatePackage=false
+    
+    - name: 📦 Create ZIP archive
+      run: |
+        cd bin/Release/net8.0-maccatalyst/maccatalyst-x64/publish/
+        zip -r MexcSetupApp-Mac-v${{ github.run_number }}.zip MexcSetupApp.Maui.app
+        mv MexcSetupApp-Mac-v${{ github.run_number }}.zip ../../../../../
+    
+    - name: 📤 Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MexcSetupApp-Mac-Build-${{ github.run_number }}
+        path: MexcSetupApp-Mac-v${{ github.run_number }}.zip
+        retention-days: 90
+        
+    - name: ✅ Build Summary
+      run: |
+        echo "🎉 Build completed successfully!"
+        echo "📦 Artifact: MexcSetupApp-Mac-v${{ github.run_number }}.zip"
+        ls -lh MexcSetupApp-Mac-v${{ github.run_number }}.zip
+
+  # Опціонально: створити GitHub Release автоматично
+  create-release:
+    name: Create GitHub Release
+    needs: build-macos
+    runs-on: macos-latest
+    if: startsWith(github.ref, 'refs/tags/')  # Тільки при створенні tag
+    
+    steps:
+    - name: 📥 Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: MexcSetupApp-Mac-Build-${{ github.run_number }}
+    
+    - name: 🚀 Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: MexcSetupApp-Mac-v${{ github.run_number }}.zip
+        body: |
+          ## MEXC Setup & Parser v${{ github.ref_name }}
+          
+          Cross-platform Telegram parser для MEXC
+          
+          ### 📥 Встановлення (Mac):
+          1. Завантаж ZIP файл
+          2. Розпакуй
+          3. Перетягни app в Applications
+          4. Запусти (Right-click → Open при першому запуску)
+          
+          ### ✨ Функції:
+          - Telegram parsing
+          - Вбудований WebView браузер
+          - Окремі вікна для токенів
+          - VIP перевірка
+          
+          **Розробник:** @kovtun_evgenii
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
