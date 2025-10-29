@@ -28,13 +28,33 @@ jobs:
       run: dotnet restore MexcSetupApp.Maui.csproj
     
     - name: 🔨 Build Release for macOS
-      run: dotnet publish MexcSetupApp.Maui.csproj -f net8.0-maccatalyst -c Release -p:CreatePackage=false -p:RuntimeIdentifier=maccatalyst-x64
+      run: dotnet publish MexcSetupApp.Maui.csproj -f net8.0-maccatalyst -c Release -p:RuntimeIdentifier=maccatalyst-x64
+    
+    - name: 🔍 Check build output
+      run: |
+        echo "📂 Checking publish directory contents:"
+        find bin/Release/net8.0-maccatalyst -name "*.app" -o -name "MexcSetupApp*"
+        echo ""
+        echo "📂 Full directory structure:"
+        ls -R bin/Release/net8.0-maccatalyst/maccatalyst-x64/
     
     - name: 📦 Create ZIP archive
       run: |
-        cd bin/Release/net8.0-maccatalyst/maccatalyst-x64/publish/
+        cd bin/Release/net8.0-maccatalyst/maccatalyst-x64/
+        if [ -d "MexcSetupApp.Maui.app" ]; then
+          echo "Found MexcSetupApp.Maui.app in root"
           zip -r MexcSetupApp-Mac-v${{ github.run_number }}.zip MexcSetupApp.Maui.app
-        mv MexcSetupApp-Mac-v${{ github.run_number }}.zip ../../../../../
+        elif [ -d "publish/MexcSetupApp.Maui.app" ]; then
+          echo "Found MexcSetupApp.Maui.app in publish/"
+          cd publish
+          zip -r MexcSetupApp-Mac-v${{ github.run_number }}.zip MexcSetupApp.Maui.app
+        else
+          echo "ERROR: Cannot find MexcSetupApp.Maui.app!"
+          echo "Available files:"
+          ls -la
+          exit 1
+        fi
+        mv MexcSetupApp-Mac-v${{ github.run_number }}.zip ../../../../
     
     - name: 📤 Upload Build Artifact
       uses: actions/upload-artifact@v4
