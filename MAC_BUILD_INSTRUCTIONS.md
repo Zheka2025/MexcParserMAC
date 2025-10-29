@@ -188,3 +188,4 @@ dotnet run -f net9.0-maccatalyst
 **Версія:** 1.0 MAUI Cross-Platform
 
 
+

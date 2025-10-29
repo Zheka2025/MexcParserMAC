@@ -12,24 +12,26 @@
                 <VerticalStackLayout Spacing="10">
                     <Label Text="Telegram / MEXC Settings" FontSize="18" FontAttributes="Bold"/>
                     
-                    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="10">
+                           <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="10">
                         <Label Grid.Row="0" Grid.Column="0" Text="API ID:" VerticalOptions="Center"/>
                         <Entry Grid.Row="0" Grid.Column="1" x:Name="ApiIdEntry" Keyboard="Numeric"/>
                         
                         <Label Grid.Row="1" Grid.Column="0" Text="API HASH:" VerticalOptions="Center"/>
                         <Entry Grid.Row="1" Grid.Column="1" x:Name="ApiHashEntry"/>
                         
-                        <Label Grid.Row="2" Grid.Column="0" Text="Phone:" VerticalOptions="Center"/>
-                        <Entry Grid.Row="2" Grid.Column="1" x:Name="PhoneEntry" Keyboard="Telephone"/>
+                               <Label Grid.Row="2" Grid.Column="0" Text="Phone:" VerticalOptions="Center"/>
+                               <Entry Grid.Row="2" Grid.Column="1" x:Name="PhoneEntry" Keyboard="Telephone"/>
+                               <Label Grid.Row="3" Grid.Column="0" Text="Bot Token:" VerticalOptions="Center"/>
+                               <Entry Grid.Row="3" Grid.Column="1" x:Name="BotTokenEntry" IsPassword="True"/>
                         
-                        <Label Grid.Row="3" Grid.Column="0" Text="Listing Channel ID:" VerticalOptions="Center"/>
-                        <Entry Grid.Row="3" Grid.Column="1" x:Name="ListingChannelEntry"/>
+                        <Label Grid.Row="4" Grid.Column="0" Text="Listing Channel ID:" VerticalOptions="Center"/>
+                        <Entry Grid.Row="4" Grid.Column="1" x:Name="ListingChannelEntry"/>
                         
-                        <Label Grid.Row="4" Grid.Column="0" Text="Delisting Channel ID:" VerticalOptions="Center"/>
-                        <Entry Grid.Row="4" Grid.Column="1" x:Name="DelistingChannelEntry"/>
+                        <Label Grid.Row="5" Grid.Column="0" Text="Delisting Channel ID:" VerticalOptions="Center"/>
+                        <Entry Grid.Row="5" Grid.Column="1" x:Name="DelistingChannelEntry"/>
                         
-                        <Label Grid.Row="5" Grid.Column="0" Text="User Data Dir:" VerticalOptions="Center"/>
-                        <Entry Grid.Row="5" Grid.Column="1" x:Name="UserDataDirEntry"/>
+                        <Label Grid.Row="6" Grid.Column="0" Text="User Data Dir:" VerticalOptions="Center"/>
+                        <Entry Grid.Row="6" Grid.Column="1" x:Name="UserDataDirEntry"/>
                     </Grid>
                 </VerticalStackLayout>
             </Frame>

@@ -5,6 +5,7 @@ public class Config
     public int? api_id { get; set; }
     public string? api_hash { get; set; }
     public string? phone_number { get; set; }
+    public string? bot_token { get; set; }
     // Legacy single channel (kept for backward compatibility)
     public string? channel { get; set; }
     // New dual-channel support
@@ -64,5 +65,6 @@ public class FilterRule
         return $"action={a}; exchanges={e}; market={m}";
     }
 }
+
 
 

@@ -89,3 +89,4 @@ MexcSetupApp.Maui/
 3. Перечитай інструкції в `MAC_BUILD_INSTRUCTIONS.md`
 
 
+
