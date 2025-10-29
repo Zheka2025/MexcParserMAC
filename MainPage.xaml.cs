@@ -132,7 +132,7 @@ public partial class MainPage : ContentPage
         Client? client = null;
         try
         {
-            client = new Client(async What =>
+            client = new Client(What =>
             {
                 switch (What)
                 {
@@ -141,9 +141,9 @@ public partial class MainPage : ContentPage
                     case "phone_number": return _cfg.phone_number;
                     case "session_pathname": return _cfg.session_pathname;
                     case "verification_code":
-                        return await MainThread.InvokeOnMainThreadAsync(() => Prompt("Введи код із Telegram"));
+                        return MainThread.InvokeOnMainThreadAsync(() => Prompt("Введи код із Telegram")).GetAwaiter().GetResult();
                     case "password":
-                        return await MainThread.InvokeOnMainThreadAsync(() => Prompt("Введи 2FA пароль (якщо є)", true));
+                        return MainThread.InvokeOnMainThreadAsync(() => Prompt("Введи 2FA пароль (якщо є)", true)).GetAwaiter().GetResult();
                     default:
                         return null;
                 }
