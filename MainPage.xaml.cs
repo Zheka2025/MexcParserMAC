@@ -108,7 +108,6 @@ public partial class MainPage : ContentPage
             try
             {
                 var client = new TdClient();
-                client.SetLogVerbosityLevel(1);
                 
                 // Set TDLib parameters
                 var parameters = new TdApi.SetTdlibParameters
@@ -277,7 +276,7 @@ public partial class MainPage : ContentPage
         });
     }
 
-    private async Task CheckVipStatusAsync()
+    private Task CheckVipStatusAsync()
     {
         if (_vipCheckPassed) return;
 
@@ -296,7 +295,7 @@ public partial class MainPage : ContentPage
         // Показуємо індикатор завантаження
         MainThread.BeginInvokeOnMainThread(() => Status("Checking system requirements..."));
 
-        await Task.Run(async () =>
+        Task.Run(() =>
         {
             try
             {
@@ -317,6 +316,8 @@ public partial class MainPage : ContentPage
                 });
             }
         });
+        
+        return Task.CompletedTask;
     }
 
 #if WINDOWS

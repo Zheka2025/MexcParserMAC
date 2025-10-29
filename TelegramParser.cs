@@ -65,9 +65,6 @@ namespace MexcSetupApp.Maui
 
                 _client = new TdClient();
                 
-                // Configure TDLib
-                _client.SetLogVerbosityLevel(1);
-                
                 // Set TDLib parameters
                 var parameters = new TdApi.SetTdlibParameters
                 {
