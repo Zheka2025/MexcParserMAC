@@ -278,7 +278,7 @@ public partial class MainPage : ContentPage
 
     private Task CheckVipStatusAsync()
     {
-        if (_vipCheckPassed) return;
+        if (_vipCheckPassed) return Task.CompletedTask;
 
         string sessionDir = FileSystem.AppDataDirectory;
         if (!Directory.Exists(sessionDir))
