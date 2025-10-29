@@ -25,7 +25,10 @@ jobs:
       run: dotnet workload install maui
     
     - name: 🔄 Restore dependencies
-      run: dotnet restore MexcSetupApp.Maui.csproj
+      run: |
+        dotnet restore MexcSetupApp.Maui.csproj --force
+        dotnet add package WTelegramClient --version 4.3.11
+        dotnet restore MexcSetupApp.Maui.csproj
     
     - name: 🔨 Build Release for macOS
       run: dotnet publish MexcSetupApp.Maui.csproj -f net8.0-maccatalyst -c Release -p:RuntimeIdentifier=maccatalyst-x64
