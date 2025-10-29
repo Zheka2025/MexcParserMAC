@@ -50,7 +50,11 @@ public partial class MainPage : ContentPage
 
     private void LoadConfigIfExists()
     {
-        var configPath = Path.Combine(FileSystem.AppDataDirectory, ConfigFile);
+        string appDataDir = FileSystem.AppDataDirectory;
+        if (!Directory.Exists(appDataDir))
+            Directory.CreateDirectory(appDataDir);
+            
+        var configPath = Path.Combine(appDataDir, ConfigFile);
         if (File.Exists(configPath))
         {
             try
@@ -115,19 +119,28 @@ public partial class MainPage : ContentPage
         _cfg.api_hash = ApiHashEntry.Text?.Trim();
         _cfg.phone_number = PhoneEntry.Text?.Trim();
 
-        string sessionPath = Path.Combine(FileSystem.AppDataDirectory, "user.session");
+        // Platform-specific session path
+        string sessionDir = FileSystem.AppDataDirectory;
+        if (!Directory.Exists(sessionDir))
+            Directory.CreateDirectory(sessionDir);
+            
+        string sessionPath = Path.Combine(sessionDir, "user.session");
+        
         try
         {
             if (File.Exists(sessionPath))
             {
+                // Тест read/write доступу
                 using (FileStream fs = File.Open(sessionPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)) { }
             }
         }
-        catch (IOException)
+        catch (Exception)
         {
-            string backup = Path.Combine(FileSystem.AppDataDirectory, $"user_{DateTime.Now:HHmmss}.session");
+            // Створити backup session якщо файл заблокований
+            string backup = Path.Combine(sessionDir, $"user_{DateTime.Now:HHmmss}.session");
             sessionPath = backup;
         }
+        
         _cfg.session_pathname = sessionPath;
 
         Status("Connecting to Telegram...");
@@ -173,10 +186,15 @@ public partial class MainPage : ContentPage
     {
         if (_vipCheckPassed) return;
 
-        string sessionPath = _cfg.session_pathname ?? Path.Combine(FileSystem.AppDataDirectory, "user.session");
+        string sessionDir = FileSystem.AppDataDirectory;
+        if (!Directory.Exists(sessionDir))
+            Directory.CreateDirectory(sessionDir);
+            
+        string sessionPath = _cfg.session_pathname ?? Path.Combine(sessionDir, "user.session");
         if (!File.Exists(sessionPath))
         {
             Log("⚠ Service check skipped: no session file");
+            StartParserBtn.IsEnabled = true; // На Mac дозволяємо без VIP check
             return;
         }
 
