@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Diagnostics;
-using Telegram.Bot;
+using TdLib;
 #if WINDOWS
 using MexcSetupApp.Maui.Platforms.Windows;
 #elif MACCATALYST
@@ -40,7 +40,6 @@ public partial class MainPage : ContentPage
                 ApiIdEntry.Text = _cfg.api_id?.ToString() ?? "";
                 ApiHashEntry.Text = _cfg.api_hash ?? "";
                 PhoneEntry.Text = _cfg.phone_number ?? "";
-                BotTokenEntry.Text = _cfg.bot_token ?? "";
                 var listing = string.IsNullOrWhiteSpace(_cfg.listing_channel) ? _cfg.channel : _cfg.listing_channel;
                 ListingChannelEntry.Text = listing ?? "";
                 DelistingChannelEntry.Text = _cfg.delisting_channel ?? "";
@@ -65,7 +64,6 @@ public partial class MainPage : ContentPage
         _cfg.api_id = int.TryParse(ApiIdEntry.Text?.Trim(), out var apiId) ? apiId : null;
         _cfg.api_hash = ApiHashEntry.Text?.Trim();
         _cfg.phone_number = PhoneEntry.Text?.Trim();
-        _cfg.bot_token = BotTokenEntry.Text?.Trim();
         _cfg.channel = ListingChannelEntry.Text?.Trim();
         _cfg.listing_channel = ListingChannelEntry.Text?.Trim();
         _cfg.delisting_channel = DelistingChannelEntry.Text?.Trim();
@@ -91,13 +89,17 @@ public partial class MainPage : ContentPage
 
     private async void OnConnectClicked(object sender, EventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(BotTokenEntry.Text))
+        if (!int.TryParse(ApiIdEntry.Text?.Trim(), out var apiId) ||
+            string.IsNullOrWhiteSpace(ApiHashEntry.Text) ||
+            string.IsNullOrWhiteSpace(PhoneEntry.Text))
         {
-            await DisplayAlert("Error", "Bot token required", "OK");
+            await DisplayAlert("Error", "Fill in API ID, API Hash and Phone", "OK");
             return;
         }
 
-        _cfg.bot_token = BotTokenEntry.Text.Trim();
+        _cfg.api_id = apiId;
+        _cfg.api_hash = ApiHashEntry.Text.Trim();
+        _cfg.phone_number = PhoneEntry.Text.Trim();
 
         Status("Connecting to Telegram...");
 
@@ -105,17 +107,32 @@ public partial class MainPage : ContentPage
         {
             try
             {
-                if (_cfg.bot_token == null)
+                var client = new TdClient();
+                client.SetLogVerbosityLevel(1);
+                
+                // Set TDLib parameters
+                var parameters = new TdApi.SetTdlibParameters
                 {
-                    MainThread.BeginInvokeOnMainThread(() => Status("❌ Bot token is null"));
-                    return;
-                }
+                    ApiId = _cfg.api_id.Value,
+                    ApiHash = _cfg.api_hash,
+                    DatabaseDirectory = Path.Combine(FileSystem.AppDataDirectory, "tdlib"),
+                    FilesDirectory = Path.Combine(FileSystem.AppDataDirectory, "tdlib_files"),
+                    UseFileDatabase = true,
+                    UseChatInfoDatabase = true,
+                    UseMessageDatabase = true,
+                    UseSecretChats = false,
+                    SystemLanguageCode = "en",
+                    DeviceModel = "Desktop",
+                    SystemVersion = "1.0",
+                    ApplicationVersion = "1.0"
+                };
+
+                await client.ExecuteAsync(parameters);
                 
-                var client = new TelegramBotClient(_cfg.bot_token);
-                var me = await client.GetMeAsync();
-                
-                MainThread.BeginInvokeOnMainThread(() => Status($"✅ Connected as @{me.Username}"));
+                MainThread.BeginInvokeOnMainThread(() => Status("✅ Telegram connected"));
                 MainThread.BeginInvokeOnMainThread(() => StartParserBtn.IsEnabled = true);
+                
+                client.Dispose();
             }
             catch (Exception ex)
             {

@@ -2,9 +2,7 @@ using System;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
+using TdLib;
 
 namespace MexcSetupApp.Maui
 {
@@ -13,7 +11,7 @@ namespace MexcSetupApp.Maui
         private readonly Config _cfg;
         private readonly Action<string> _log;
         private readonly Action<string, string> _openToken;
-        private TelegramBotClient? _client;
+        private TdClient? _client;
         private CancellationTokenSource? _cts;
         private bool _isRunning = false;
         private readonly Regex _rx = new(@"\$(?<t>[A-Za-z0-9_]{2,20})", RegexOptions.Compiled);
@@ -59,20 +57,41 @@ namespace MexcSetupApp.Maui
 
             try
             {
-                if (string.IsNullOrEmpty(_cfg.bot_token))
+                if (_cfg.api_id == null || string.IsNullOrEmpty(_cfg.api_hash))
                 {
-                    _log("❌ Bot token not configured");
+                    _log("❌ API ID and API Hash required");
                     return;
                 }
 
-                _client = new TelegramBotClient(_cfg.bot_token);
+                _client = new TdClient();
                 
-                // Test bot connection
-                var me = await _client.GetMeAsync(_cts.Token);
-                _log($"✅ Connected as @{me.Username}");
+                // Configure TDLib
+                _client.SetLogVerbosityLevel(1);
+                
+                // Set TDLib parameters
+                var parameters = new TdApi.SetTdlibParameters
+                {
+                    ApiId = _cfg.api_id.Value,
+                    ApiHash = _cfg.api_hash,
+                    DatabaseDirectory = Path.Combine(FileSystem.AppDataDirectory, "tdlib"),
+                    FilesDirectory = Path.Combine(FileSystem.AppDataDirectory, "tdlib_files"),
+                    UseFileDatabase = true,
+                    UseChatInfoDatabase = true,
+                    UseMessageDatabase = true,
+                    UseSecretChats = false,
+                    SystemLanguageCode = "en",
+                    DeviceModel = "Desktop",
+                    SystemVersion = "1.0",
+                    ApplicationVersion = "1.0"
+                };
 
+                await _client.ExecuteAsync(parameters);
+                
+                _log("✅ TDLib initialized");
+                
                 // Start receiving updates
-                _client.StartReceiving(HandleUpdate, HandleError, cancellationToken: _cts.Token);
+                _client.UpdateReceived += OnUpdateReceived;
+                
                 _log("✅ Parser started successfully");
             }
             catch (Exception ex)
@@ -88,55 +107,53 @@ namespace MexcSetupApp.Maui
             
             _log("Stopping parser...");
             _cts?.Cancel();
+            _client?.Dispose();
             _isRunning = false;
             _log("✅ Parser stopped");
             return Task.CompletedTask;
         }
 
-        private Task HandleUpdate(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        private void OnUpdateReceived(object? sender, TdApi.Update update)
         {
             try
             {
-                if (update.Message?.Text == null) return Task.CompletedTask;
-
-                var message = update.Message.Text;
-                var chatId = update.Message.Chat.Id;
-
-                _log($"📨 Message from {chatId}: {message}");
-
-                // Check if this is a listing/delisting channel
-                if (_listingChannelId == null || _delistingChannelId == null)
+                if (update is TdApi.Update.UpdateNewMessage newMessage)
                 {
-                    if (message.Contains("listed") || message.Contains("delisted"))
+                    var message = newMessage.Message;
+                    if (message.Content is TdApi.MessageContent.MessageText textContent)
                     {
-                        if (_listingChannelId == null && message.Contains("listed"))
+                        var text = textContent.Text.Text;
+                        var chatId = message.ChatId;
+
+                        _log($"📨 Message from {chatId}: {text}");
+
+                        // Check if this is a listing/delisting channel
+                        if (_listingChannelId == null || _delistingChannelId == null)
                         {
-                            _listingChannelId = chatId;
-                            _log($"📌 Set listing channel: {chatId}");
+                            if (text.Contains("listed") || text.Contains("delisted"))
+                            {
+                                if (_listingChannelId == null && text.Contains("listed"))
+                                {
+                                    _listingChannelId = chatId;
+                                    _log($"📌 Set listing channel: {chatId}");
+                                }
+                                if (_delistingChannelId == null && text.Contains("delisted"))
+                                {
+                                    _delistingChannelId = chatId;
+                                    _log($"📌 Set delisting channel: {chatId}");
+                                }
+                            }
                         }
-                        if (_delistingChannelId == null && message.Contains("delisted"))
-                        {
-                            _delistingChannelId = chatId;
-                            _log($"📌 Set delisting channel: {chatId}");
-                        }
+
+                        // Process message with filters
+                        ProcessMessage(text, chatId);
                     }
                 }
-
-                // Process message with filters
-                ProcessMessage(message, chatId);
             }
             catch (Exception ex)
             {
                 _log($"❌ Update error: {ex.Message}");
             }
-            
-            return Task.CompletedTask;
-        }
-
-        private Task HandleError(ITelegramBotClient botClient, Exception error, CancellationToken cancellationToken)
-        {
-            _log($"❌ Bot error: {error.Message}");
-            return Task.CompletedTask;
         }
 
         private void ProcessMessage(string message, long chatId)
@@ -212,6 +229,7 @@ namespace MexcSetupApp.Maui
         public void Dispose()
         {
             _cts?.Cancel();
+            _client?.Dispose();
             _cts?.Dispose();
         }
     }
