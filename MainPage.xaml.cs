@@ -107,14 +107,6 @@ public partial class MainPage : ContentPage
 
     private async void OnConnectClicked(object sender, EventArgs e)
     {
-#if MACCATALYST
-        // На macOS WTelegramClient не підтримується
-        await DisplayAlert("macOS Notice", 
-            "Telegram connection currently works only on Windows.\n\nOn Mac you can:\n- Use MEXC login and manual token entry\n- Or run parser on Windows machine", 
-            "OK");
-        Status("⚠️ Telegram not supported on macOS");
-        return;
-#else
         if (!int.TryParse(ApiIdEntry.Text?.Trim(), out var apiId) ||
             string.IsNullOrWhiteSpace(ApiHashEntry.Text) ||
             string.IsNullOrWhiteSpace(PhoneEntry.Text))
@@ -127,6 +119,7 @@ public partial class MainPage : ContentPage
         _cfg.api_hash = ApiHashEntry.Text?.Trim();
         _cfg.phone_number = PhoneEntry.Text?.Trim();
 
+        // Platform-specific session path
         string sessionDir = FileSystem.AppDataDirectory;
         if (!Directory.Exists(sessionDir))
             Directory.CreateDirectory(sessionDir);
@@ -136,54 +129,48 @@ public partial class MainPage : ContentPage
 
         Status("Connecting to Telegram...");
 
-        await Task.Run(async () =>
+        Client? client = null;
+        try
         {
-            Client? client = null;
-            try
+            client = new Client(async What =>
             {
-                client = new Client(What => What switch
+                switch (What)
                 {
-                    "api_id" => _cfg.api_id?.ToString(),
-                    "api_hash" => _cfg.api_hash,
-                    "phone_number" => _cfg.phone_number,
-                    "session_pathname" => _cfg.session_pathname,
-                    "verification_code" => MainThread.InvokeOnMainThreadAsync(() => Prompt("Введи код із Telegram")).Result,
-                    "password" => MainThread.InvokeOnMainThreadAsync(() => Prompt("Введи 2FA пароль (якщо є)", true)).Result,
-                    _ => null
-                });
+                    case "api_id": return _cfg.api_id?.ToString();
+                    case "api_hash": return _cfg.api_hash;
+                    case "phone_number": return _cfg.phone_number;
+                    case "session_pathname": return _cfg.session_pathname;
+                    case "verification_code":
+                        return await MainThread.InvokeOnMainThreadAsync(() => Prompt("Введи код із Telegram"));
+                    case "password":
+                        return await MainThread.InvokeOnMainThreadAsync(() => Prompt("Введи 2FA пароль (якщо є)", true));
+                    default:
+                        return null;
+                }
+            });
 
-                await client.LoginUserIfNeeded();
+            await client.LoginUserIfNeeded();
 
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    Status("Telegram connected ✔");
-                    MexcLoginBtn.IsEnabled = true;
-                    var configPath = Path.Combine(FileSystem.AppDataDirectory, ConfigFile);
-                    File.WriteAllText(configPath, JsonConvert.SerializeObject(_cfg, Formatting.Indented));
-                });
-            }
-            catch (Exception ex)
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                MainThread.BeginInvokeOnMainThread(() => Status("Telegram error: " + ex.Message, true));
-            }
-            finally
-            {
-                try { client?.Dispose(); } catch { }
-            }
-        });
-#endif
+                Status("Telegram connected ✔");
+                MexcLoginBtn.IsEnabled = true;
+                var configPath = Path.Combine(FileSystem.AppDataDirectory, ConfigFile);
+                File.WriteAllText(configPath, JsonConvert.SerializeObject(_cfg, Formatting.Indented));
+            });
+        }
+        catch (Exception ex)
+        {
+            MainThread.BeginInvokeOnMainThread(() => Status("Telegram error: " + ex.Message, true));
+        }
+        finally
+        {
+            try { client?.Dispose(); } catch { }
+        }
     }
 
     private async Task CheckVipStatusAsync()
     {
-#if MACCATALYST
-        // На macOS WTelegramClient не працює - пропускаємо VIP check
-        _vipCheckPassed = true;
-        StartParserBtn.IsEnabled = false; // Parser теж не працюватиме без Telegram
-        MexcLoginBtn.IsEnabled = true; // Але MEXC WebView працює!
-        Status("macOS mode: Telegram disabled, MEXC WebView available ✔");
-        return;
-#else
         if (_vipCheckPassed) return;
 
         string sessionDir = FileSystem.AppDataDirectory;
@@ -194,10 +181,11 @@ public partial class MainPage : ContentPage
         if (!File.Exists(sessionPath))
         {
             Log("⚠ Service check skipped: no session file");
-            StartParserBtn.IsEnabled = true;
+            StartParserBtn.IsEnabled = true; // На Mac дозволяємо без VIP check
             return;
         }
 
+        // Показуємо індикатор завантаження
         MainThread.BeginInvokeOnMainThread(() => Status("Checking system requirements..."));
 
         await Task.Run(async () =>
@@ -216,6 +204,7 @@ public partial class MainPage : ContentPage
 
                 await client.LoginUserIfNeeded();
                 
+                // Перевірка членства в VIP групі
                 try
                 {
                     bool isMember = false;
@@ -248,7 +237,7 @@ public partial class MainPage : ContentPage
                         }
                     });
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
@@ -260,7 +249,7 @@ public partial class MainPage : ContentPage
                     });
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
@@ -276,7 +265,6 @@ public partial class MainPage : ContentPage
                 try { client?.Dispose(); } catch { }
             }
         });
-#endif
     }
 
     private void OnMexcLoginClicked(object sender, EventArgs e)
