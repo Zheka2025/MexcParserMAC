@@ -289,7 +289,7 @@ public partial class MainPage : ContentPage
         {
             Log("⚠ Service check skipped: no session file");
             StartParserBtn.IsEnabled = true; // На Mac дозволяємо без VIP check
-            return;
+            return Task.CompletedTask;
         }
 
         // Показуємо індикатор завантаження
