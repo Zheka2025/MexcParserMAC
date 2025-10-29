@@ -242,3 +242,4 @@ echo "📤 Ready to distribute!"
 
 **Створити release скрипт?** 🤔
 
+

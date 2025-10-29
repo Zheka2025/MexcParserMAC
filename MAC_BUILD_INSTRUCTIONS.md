@@ -187,3 +187,4 @@ dotnet run -f net9.0-maccatalyst
 **Розробник:** @kovtun_evgenii  
 **Версія:** 1.0 MAUI Cross-Platform
 
+

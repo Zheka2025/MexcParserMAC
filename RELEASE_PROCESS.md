@@ -231,3 +231,4 @@ xcrun stapler staple releases/MexcSetupApp-Mac-v1.0.dmg
 - Використати **GitHub Actions** (я можу налаштувати - білдить на Mac автоматично!)
 - Орендувати Mac в хмарі (MacStadium, MacinCloud)
 
+

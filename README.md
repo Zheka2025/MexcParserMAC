@@ -88,3 +88,4 @@ MexcSetupApp.Maui/
 2. Перевір що MAUI встановлений: `dotnet workload list`
 3. Перечитай інструкції в `MAC_BUILD_INSTRUCTIONS.md`
 
+

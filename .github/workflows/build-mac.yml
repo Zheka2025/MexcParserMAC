@@ -16,7 +16,7 @@ jobs:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
     
-    - name: 🔧 Setup .NET 8
+    - name: 🔧 Setup .NET 9
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
@@ -28,12 +28,12 @@ jobs:
       run: dotnet restore MexcSetupApp.Maui.csproj
     
     - name: 🔨 Build Release for macOS
-      run: dotnet publish MexcSetupApp.Maui.csproj -f net8.0-maccatalyst -c Release -p:CreatePackage=false
+      run: dotnet publish MexcSetupApp.Maui.csproj -f net8.0-maccatalyst -c Release -p:CreatePackage=false -p:RuntimeIdentifier=maccatalyst-x64
     
     - name: 📦 Create ZIP archive
       run: |
         cd bin/Release/net8.0-maccatalyst/maccatalyst-x64/publish/
-        zip -r MexcSetupApp-Mac-v${{ github.run_number }}.zip MexcSetupApp.Maui.app
+          zip -r MexcSetupApp-Mac-v${{ github.run_number }}.zip MexcSetupApp.Maui.app
         mv MexcSetupApp-Mac-v${{ github.run_number }}.zip ../../../../../
     
     - name: 📤 Upload Build Artifact
