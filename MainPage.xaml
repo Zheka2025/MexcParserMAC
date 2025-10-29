@@ -44,13 +44,38 @@
                 <Button x:Name="ToggleVisibilityBtn" Text="👁 Hide" WidthRequest="100" Clicked="OnToggleVisibilityClicked"/>
             </HorizontalStackLayout>
 
+            <!-- FILTERS -->
+            <Frame BorderColor="LightGray" Padding="15" CornerRadius="8">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Filters" FontSize="18" FontAttributes="Bold"/>
+                    <HorizontalStackLayout Spacing="10">
+                        <Label Text="Filters Enabled:" VerticalOptions="Center"/>
+                        <Switch x:Name="FiltersEnabled"/>
+                    </HorizontalStackLayout>
+                    <Label Text="Listing Patterns (one per line):"/>
+                    <Editor x:Name="ListingPatternsEditor" HeightRequest="100"/>
+                    <Label Text="Delisting Patterns (one per line):"/>
+                    <Editor x:Name="DelistingPatternsEditor" HeightRequest="100"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- TOKEN MANUAL OPEN -->
+            <Frame BorderColor="LightGray" Padding="15" CornerRadius="8">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Manual Token Open" FontSize="18" FontAttributes="Bold"/>
+                    <HorizontalStackLayout Spacing="10">
+                        <Entry x:Name="TokenEntry" Placeholder="Enter token (e.g. BTC)" HorizontalOptions="FillAndExpand"/>
+                        <Button Text="Open Token" WidthRequest="120" Clicked="OnOpenTokenClicked"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
             <!-- PARSER CONTROL -->
             <Frame BorderColor="LightGray" Padding="15" CornerRadius="8">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="Parser Control" FontSize="18" FontAttributes="Bold"/>
                     <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
                         <Button x:Name="StartParserBtn" Text="Start Parser" WidthRequest="120" Clicked="OnStartParserClicked" IsEnabled="False"/>
-                        <Button x:Name="StopParserBtn" Text="Stop Parser" WidthRequest="120" Clicked="OnStopParserClicked" IsEnabled="False"/>
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </Frame>

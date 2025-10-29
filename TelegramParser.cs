@@ -82,22 +82,22 @@ namespace MexcSetupApp.Maui
             }
         }
 
-        public async Task StopAsync()
+        public Task StopAsync()
         {
-            if (!_isRunning) return;
+            if (!_isRunning) return Task.CompletedTask;
             
             _log("Stopping parser...");
             _cts?.Cancel();
-            _client?.StopReceiving();
             _isRunning = false;
             _log("✅ Parser stopped");
+            return Task.CompletedTask;
         }
 
-        private async Task HandleUpdate(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        private Task HandleUpdate(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             try
             {
-                if (update.Message?.Text == null) return;
+                if (update.Message?.Text == null) return Task.CompletedTask;
 
                 var message = update.Message.Text;
                 var chatId = update.Message.Chat.Id;
@@ -123,20 +123,23 @@ namespace MexcSetupApp.Maui
                 }
 
                 // Process message with filters
-                await ProcessMessage(message, chatId);
+                ProcessMessage(message, chatId);
             }
             catch (Exception ex)
             {
                 _log($"❌ Update error: {ex.Message}");
             }
+            
+            return Task.CompletedTask;
         }
 
-        private async Task HandleError(ITelegramBotClient botClient, Exception error, CancellationToken cancellationToken)
+        private Task HandleError(ITelegramBotClient botClient, Exception error, CancellationToken cancellationToken)
         {
             _log($"❌ Bot error: {error.Message}");
+            return Task.CompletedTask;
         }
 
-        private async Task ProcessMessage(string message, long chatId)
+        private void ProcessMessage(string message, long chatId)
         {
             if (_cfg.filters?.enabled != true) return;
 
@@ -209,7 +212,6 @@ namespace MexcSetupApp.Maui
         public void Dispose()
         {
             _cts?.Cancel();
-            _client?.StopReceiving();
             _cts?.Dispose();
         }
     }

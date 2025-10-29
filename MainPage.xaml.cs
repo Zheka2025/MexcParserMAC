@@ -60,7 +60,7 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private void OnSaveConfigClicked(object sender, EventArgs e)
+    private void OnSaveClicked(object sender, EventArgs e)
     {
         _cfg.api_id = int.TryParse(ApiIdEntry.Text?.Trim(), out var apiId) ? apiId : null;
         _cfg.api_hash = ApiHashEntry.Text?.Trim();
@@ -72,9 +72,21 @@ public partial class MainPage : ContentPage
         _cfg.user_data_dir = UserDataDirEntry.Text?.Trim();
         _cfg.session_pathname ??= Path.Combine(FileSystem.AppDataDirectory, "user.session");
 
+        // Save filters
+        if (_cfg.filters == null) _cfg.filters = new FilterSettings();
+        _cfg.filters.enabled = FiltersEnabled.IsToggled;
+        _cfg.filters.listing_patterns = ListingPatternsEditor.Text?.Split('\n', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+        _cfg.filters.delisting_patterns = DelistingPatternsEditor.Text?.Split('\n', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+
         var configPath = Path.Combine(FileSystem.AppDataDirectory, ConfigFile);
         File.WriteAllText(configPath, JsonConvert.SerializeObject(_cfg, Formatting.Indented));
         Status("Saved config.json ✔");
+    }
+
+    private void OnToggleVisibilityClicked(object sender, EventArgs e)
+    {
+        // TODO: Implement
+        Status("Toggle visibility not implemented yet");
     }
 
     private async void OnConnectClicked(object sender, EventArgs e)
@@ -85,7 +97,7 @@ public partial class MainPage : ContentPage
             return;
         }
 
-        _cfg.bot_token = BotTokenEntry.Text?.Trim();
+        _cfg.bot_token = BotTokenEntry.Text.Trim();
 
         Status("Connecting to Telegram...");
 
@@ -93,6 +105,12 @@ public partial class MainPage : ContentPage
         {
             try
             {
+                if (_cfg.bot_token == null)
+                {
+                    MainThread.BeginInvokeOnMainThread(() => Status("❌ Bot token is null"));
+                    return;
+                }
+                
                 var client = new TelegramBotClient(_cfg.bot_token);
                 var me = await client.GetMeAsync();
                 
